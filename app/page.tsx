@@ -1,7 +1,6 @@
-// app/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 
 import { Todo, TodoPriority } from "@/components/todo/TodoCard";
 import { TodoForm } from "@/components/todo/TodoForm";
@@ -30,6 +29,19 @@ type TodoStatusFilter = "all" | "completed" | "incomplete";
 type TodoPriorityFilter = "all" | TodoPriority;
 type TodoSortKey = "createdDate" | "dueDate" | "priority" | "title";
 
+// Supabase row 타입 정의 추가
+type TodoRow = {
+  id: string | number;
+  user_id: string;
+  title: string;
+  description?: string | null;
+  created_date?: string | null;
+  due_date?: string | null;
+  priority?: string | null;
+  category?: string[] | null;
+  completed?: boolean | null;
+};
+
 const HomePage = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [query, setQuery] = useState("");
@@ -48,7 +60,7 @@ const HomePage = () => {
     return todos.find((t) => t.id === editingTodoId);
   }, [editingTodoId, todos]);
 
-  const parseTodoRow = (row: any): Todo => ({
+  const parseTodoRow = (row: TodoRow): Todo => ({
     id: String(row.id),
     userId: String(row.user_id),
     title: String(row.title),
@@ -64,7 +76,7 @@ const HomePage = () => {
     completed: Boolean(row.completed),
   });
 
-  const fetchTodos = async (currentUserId: string) => {
+  const fetchTodos = useCallback(async (currentUserId: string) => {
     setLoading(true);
     try {
       const supabase = createClient();
@@ -77,9 +89,9 @@ const HomePage = () => {
       if (error) {
         console.error(
           "fetchTodos 에러 상세:",
-          error?.message,
-          error?.details,
-          error?.code,
+          error.message,
+          error.details,
+          error.code,
         );
         setErrorMessage("할 일 목록을 불러오는 중 오류가 발생했습니다.");
         return;
@@ -90,13 +102,14 @@ const HomePage = () => {
       }
 
       setTodos(data.map(parseTodoRow));
-    } catch (err: any) {
-      console.error("fetchTodos 네트워크 에러:", err?.message || err);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error("fetchTodos 네트워크 에러:", errMsg);
       setErrorMessage("네트워크 오류로 할 일을 불러올 수 없습니다.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -105,7 +118,7 @@ const HomePage = () => {
         const supabase = createClient();
         const { data, error } = await supabase.auth.getSession();
         if (error) {
-          console.error("세션 확인 에러:", error?.message);
+          console.error("세션 확인 에러:", error.message);
           setErrorMessage("세션을 확인하는 중 오류가 발생했습니다.");
           return;
         }
@@ -118,8 +131,9 @@ const HomePage = () => {
         }
         setUserId(user.id);
         await fetchTodos(user.id);
-      } catch (err: any) {
-        console.error("초기화 네트워크 에러:", err?.message || err);
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        console.error("초기화 네트워크 에러:", errMsg);
         setErrorMessage(
           "로그인 상태를 확인할 수 없습니다. 페이지를 새로고침 해주세요.",
         );
@@ -129,7 +143,7 @@ const HomePage = () => {
     };
 
     void init();
-  }, []);
+  }, [fetchTodos]);
 
   const filteredTodos = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -200,17 +214,18 @@ const HomePage = () => {
       if (error) {
         console.error(
           "완료 상태 업데이트 에러:",
-          error?.message,
-          error?.details,
-          error?.code,
+          error.message,
+          error.details,
+          error.code,
         );
         setErrorMessage("완료 상태를 변경하는 동안 오류가 발생했습니다.");
         return;
       }
 
       await fetchTodos(userId);
-    } catch (err: any) {
-      console.error("완료 상태 토글 네트워크 에러:", err?.message || err);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error("완료 상태 토글 네트워크 에러:", errMsg);
       setErrorMessage("네트워크 오류로 진행할 수 없습니다.");
     } finally {
       setLoading(false);
@@ -240,9 +255,9 @@ const HomePage = () => {
       if (error) {
         console.error(
           "삭제 에러 상세:",
-          error?.message,
-          error?.details,
-          error?.code,
+          error.message,
+          error.details,
+          error.code,
         );
         setErrorMessage("삭제 중 오류가 발생했습니다.");
         return;
@@ -250,8 +265,9 @@ const HomePage = () => {
       setEditingTodoId((prev) => (prev === id ? null : prev));
       await fetchTodos(userId);
       setStatusMessage("할 일이 삭제되었습니다.");
-    } catch (err: any) {
-      console.error("삭제 네트워크 에러:", err?.message || err);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error("삭제 네트워크 에러:", errMsg);
       setErrorMessage("네트워크 오류로 삭제할 수 없습니다.");
     } finally {
       setLoading(false);
@@ -289,9 +305,9 @@ const HomePage = () => {
         if (error) {
           console.error(
             "할 일 수정 에러 상세:",
-            error?.message,
-            error?.details,
-            error?.code,
+            error.message,
+            error.details,
+            error.code,
           );
           setErrorMessage("할 일 수정 중 오류가 발생했습니다.");
           return;
@@ -317,9 +333,9 @@ const HomePage = () => {
         if (error) {
           console.error(
             "할 일 생성 에러 상세:",
-            error?.message,
-            error?.details,
-            error?.code,
+            error.message,
+            error.details,
+            error.code,
           );
           setErrorMessage("할 일 생성 중 오류가 발생했습니다.");
           return;
@@ -327,8 +343,9 @@ const HomePage = () => {
         setStatusMessage("새 할 일이 추가되었습니다.");
       }
       await fetchTodos(userId);
-    } catch (err: any) {
-      console.error("할 일 저장 네트워크 에러:", err?.message || err);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error("할 일 저장 네트워크 에러:", errMsg);
       setErrorMessage("네트워크 오류로 할 일을 저장할 수 없습니다.");
     } finally {
       setLoading(false);
