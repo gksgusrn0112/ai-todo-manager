@@ -19,7 +19,7 @@ const getSupabaseEnv = () => {
   return { url, anonKey };
 };
 
-export const middleware = async (request: NextRequest) => {
+export const proxy = async (request: NextRequest) => {
   const { url, anonKey } = getSupabaseEnv();
 
   let response = NextResponse.next({
@@ -65,4 +65,3 @@ export const middleware = async (request: NextRequest) => {
 export const config = {
   matcher: ["/", "/login", "/signup"],
 };
-
