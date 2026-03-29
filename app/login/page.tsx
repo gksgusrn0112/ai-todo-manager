@@ -7,7 +7,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -77,7 +83,9 @@ const LoginPage = () => {
       router.replace("/");
       router.refresh();
     } catch {
-      setErrorMessage("로그인 중 문제가 발생했습니다. 네트워크 상태를 확인해 주세요.");
+      setErrorMessage(
+        "로그인 중 문제가 발생했습니다. 네트워크 상태를 확인해 주세요.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -92,10 +100,11 @@ const LoginPage = () => {
             AI Todo Manager
           </div>
           <h1 className="mb-2 text-2xl font-bold tracking-tight text-foreground">
-            하루를 정리하는 가장 빠른 방법
+            AI가 도와주는 스마트한 할 일 관리
           </h1>
           <p className="max-w-sm text-sm text-muted-foreground">
-            자연어로 할 일을 적으면 AI가 자동으로 구조화해 주고, 오늘 해야 할 일과 생산성을 한눈에 보여드립니다.
+            자연어로 할 일을 적으면 AI가 자동으로 구조화해 주고, 오늘 해야 할
+            일과 생산성을 한눈에 보여드립니다.
           </p>
         </div>
 
@@ -104,7 +113,8 @@ const LoginPage = () => {
           <CardHeader>
             <CardTitle className="text-lg">로그인</CardTitle>
             <CardDescription className="text-xs">
-              AI Todo Manager 계정으로 로그인하고, 어디서든 할 일을 이어서 관리하세요.
+              AI Todo Manager 계정으로 로그인하고, 어디서든 할 일을 이어서
+              관리하세요.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -135,7 +145,11 @@ const LoginPage = () => {
                 />
               </div>
 
-              <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className="mt-2 w-full"
+                disabled={isSubmitting}
+              >
                 {isSubmitting && <Spinner className="mr-2" />}
                 {isSubmitting ? "로그인 중..." : "이메일로 로그인"}
               </Button>
@@ -149,7 +163,10 @@ const LoginPage = () => {
 
             <div className="mt-6 text-center text-xs text-muted-foreground">
               아직 계정이 없으신가요?{" "}
-              <Link href="/signup" className="font-medium text-primary hover:underline">
+              <Link
+                href="/signup"
+                className="font-medium text-primary hover:underline"
+              >
                 회원가입하러 가기
               </Link>
             </div>
@@ -161,4 +178,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
