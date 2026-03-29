@@ -70,7 +70,6 @@ export const TodoForm = ({
       const response = await fetch("/api/parse-todo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // AI가 시간 기준을 잡도록 현재 시간 전달
         body: JSON.stringify({
           prompt: aiPrompt,
           currentTime: new Date().toISOString(),
@@ -88,7 +87,6 @@ export const TodoForm = ({
         combinedDueDate = `${result.due_date}T${result.due_time || "09:00"}`;
       }
 
-      // 상태 업데이트 (폼 필드 자동 채우기 - 설명(description) 포함)
       setValues((prev) => ({
         ...prev,
         title: result.title || prev.title,
@@ -108,20 +106,22 @@ export const TodoForm = ({
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const trimmed = {
-      ...values,
-      title: values.title.trim(),
-      description: values.description.trim(),
-      category: values.category.trim(),
-    };
+    event.preventDefault(); // 폼 기본 제출(새로고침) 방지
 
-    if (!trimmed.title) {
+    const trimmedTitle = values.title.trim();
+
+    if (!trimmedTitle) {
       alert("할 일 제목을 입력해 주세요.");
       return;
     }
 
-    onSubmit(trimmed);
+    // 부모 컴포넌트(page.tsx)의 handleSubmitTodo 함수 실행!
+    onSubmit({
+      ...values,
+      title: trimmedTitle,
+      description: values.description.trim(),
+      category: values.category.trim(),
+    });
 
     // 새 할 일 추가 후 폼 초기화
     if (!initialTodo) {
@@ -138,7 +138,7 @@ export const TodoForm = ({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* AI 입력 영역 */}
+      {/* AI 입력 영역 (폼 바깥으로 분리하여 엔터키 충돌 방지) */}
       {!initialTodo && (
         <div className="flex flex-col gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4">
           <label
@@ -157,7 +157,7 @@ export const TodoForm = ({
               className="h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  e.preventDefault();
+                  e.preventDefault(); // AI 텍스트창에서 엔터 칠 때 메인 폼이 제출되는 것 방지
                   handleAIGenerate();
                 }
               }}
@@ -200,6 +200,7 @@ export const TodoForm = ({
             onChange={handleChange("title")}
             placeholder="예: 팀 회의 준비"
             className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            required // HTML 기본 검증 추가
           />
         </div>
 
